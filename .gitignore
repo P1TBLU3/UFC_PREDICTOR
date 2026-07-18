@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+
+# Local data
+data/raw/**/*.csv
+data/raw/**/*.json
+data/raw/**/*.parquet
+data/interim/**
+data/processed/**
+!data/**/.gitkeep
+
+# Trained models
+models/
+*.pkl
+*.joblib
+
+# Environment variables
+.env
