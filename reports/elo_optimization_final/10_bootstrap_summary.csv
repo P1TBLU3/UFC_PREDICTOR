@@ -1,0 +1,2 @@
+candidate,n_bootstrap,mean_delta_log_loss,median_delta_log_loss,ci_2_5,ci_97_5,probability_improvement
+joint_sig0.75_ko0.90_base1.05_q0.05_k1.00__submission_heavy_rev0.04_rec60_thr1.0_sub0.85_base1.05_q0.05_k0.75,3000,-0.011099588488045048,-0.01105311407015741,-0.016697083490045037,-0.005558256042119972,1.0

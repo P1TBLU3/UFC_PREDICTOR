@@ -1,0 +1,79 @@
+{
+  "time_weight_config": {
+    "mode": "exclude_before",
+    "cutoff_date": "2015-01-01",
+    "pre_cutoff_weight": 0.25,
+    "half_life_years": 8.0,
+    "minimum_weight": 0.1
+  },
+  "time_weight_summary": {
+    "config": {
+      "mode": "exclude_before",
+      "cutoff_date": "2015-01-01",
+      "pre_cutoff_weight": 0.25,
+      "half_life_years": 8.0,
+      "minimum_weight": 0.1
+    },
+    "original_train_rows": 6307,
+    "effective_train_rows": 3309,
+    "excluded_rows": 2998,
+    "effective_date_min": "2015-01-03T00:00:00",
+    "effective_date_max": "2021-12-18T00:00:00",
+    "weight_min": 1.0,
+    "weight_mean": 1.0,
+    "weight_max": 1.0,
+    "weight_sum": 3309.0,
+    "effective_sample_size": 3309.0,
+    "effective_target_rate": 0.49984889694771834
+  },
+  "split_config": {
+    "train_end": "2022-01-01",
+    "validation_end": "2024-01-01"
+  },
+  "evaluate_test": false,
+  "validation_metrics": {
+    "random_forest": {
+      "accuracy": 0.6049504950495049,
+      "balanced_accuracy": 0.6049500518330035,
+      "roc_auc": 0.629719944711463,
+      "log_loss": 0.6674388013791788,
+      "brier_score": 0.23741590942487723,
+      "threshold": 0.5,
+      "tn": 317,
+      "fp": 207,
+      "fn": 192,
+      "tp": 294
+    },
+    "catboost": {
+      "accuracy": 0.593069306930693,
+      "balanced_accuracy": 0.5940219269311721,
+      "roc_auc": 0.6325982471020639,
+      "log_loss": 0.6663090160693672,
+      "brier_score": 0.23689327032489285,
+      "threshold": 0.5,
+      "tn": 298,
+      "fp": 226,
+      "fn": 185,
+      "tp": 301
+    }
+  },
+  "test_metrics": null,
+  "selected_model_by_validation_log_loss": "catboost",
+  "random_forest_config": {
+    "n_estimators": 800,
+    "max_depth": 12,
+    "min_samples_leaf": 4,
+    "max_features": "sqrt",
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "catboost_config": {
+    "iterations": 2000,
+    "learning_rate": 0.03,
+    "depth": 5,
+    "l2_leaf_reg": 10.0,
+    "random_seed": 42,
+    "early_stopping_rounds": 150,
+    "verbose": 100
+  }
+}

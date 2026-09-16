@@ -1,0 +1,45 @@
+{
+  "base_elo": 1500.0,
+  "elo_scale": 300.0,
+  "k_schedule": [
+    [
+      3,
+      30.0
+    ],
+    [
+      6,
+      28.0
+    ],
+    [
+      10,
+      24.0
+    ],
+    [
+      1000000000,
+      20.0
+    ]
+  ],
+  "striking_k_multiplier": 1.0,
+  "grappling_k_multiplier": 0.75,
+  "confidence_prior_fights": 3.0,
+  "inactivity_grace_days": 304,
+  "inactivity_tau_days": 730.0,
+  "max_shrink_low_confidence": 0.0,
+  "max_shrink_high_confidence": 0.0,
+  "use_effective_for_expectation": false,
+  "striking_sig_share_weight": 0.75,
+  "striking_kd_share_weight": 0.25,
+  "ko_min_winner_score": 0.9,
+  "ko_base_multiplier": 1.05,
+  "ko_max_quality_bonus": 0.05,
+  "grapple_td_weight": 0.3,
+  "grapple_control_weight": 0.25,
+  "grapple_sub_weight": 0.3,
+  "grapple_recovery_weight": 0.15,
+  "grapple_reversal_penalty": 0.04,
+  "recovery_scale_seconds": 60.0,
+  "submission_threat_scale": 1.0,
+  "sub_min_winner_score": 0.85,
+  "sub_base_multiplier": 1.05,
+  "sub_max_quality_bonus": 0.05
+}

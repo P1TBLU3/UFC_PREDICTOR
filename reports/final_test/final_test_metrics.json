@@ -1,0 +1,36 @@
+{
+  "test_rows": 1310,
+  "test_date_min": "2024-03-16",
+  "test_date_max": "2026-09-12",
+  "calibration_method": "none",
+  "raw_catboost": {
+    "log_loss": 0.6339966862192445,
+    "brier": 0.22141018906980986,
+    "roc_auc": 0.7041143380429095,
+    "accuracy": 0.6473282442748092,
+    "ece_10": 0.05073883065564217
+  },
+  "final_probabilities": {
+    "log_loss": 0.6339966862192445,
+    "brier": 0.22141018906980986,
+    "roc_auc": 0.7041143380429095,
+    "accuracy": 0.6473282442748092,
+    "ece_10": 0.05073883065564217
+  },
+  "frozen_catboost_params": {
+    "loss_function": "Logloss",
+    "eval_metric": "Logloss",
+    "iterations": 734,
+    "depth": 4,
+    "learning_rate": 0.02,
+    "l2_leaf_reg": 10.0,
+    "random_strength": 2.0,
+    "bootstrap_type": "Bayesian",
+    "bagging_temperature": 0.0,
+    "border_count": 254,
+    "random_seed": 42,
+    "verbose": false,
+    "allow_writing_files": false,
+    "thread_count": -1
+  }
+}

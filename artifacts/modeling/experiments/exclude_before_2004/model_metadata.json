@@ -1,0 +1,79 @@
+{
+  "time_weight_config": {
+    "mode": "exclude_before",
+    "cutoff_date": "2004-01-01",
+    "pre_cutoff_weight": 0.25,
+    "half_life_years": 8.0,
+    "minimum_weight": 0.1
+  },
+  "time_weight_summary": {
+    "config": {
+      "mode": "exclude_before",
+      "cutoff_date": "2004-01-01",
+      "pre_cutoff_weight": 0.25,
+      "half_life_years": 8.0,
+      "minimum_weight": 0.1
+    },
+    "original_train_rows": 6307,
+    "effective_train_rows": 5916,
+    "excluded_rows": 391,
+    "effective_date_min": "2004-01-31T00:00:00",
+    "effective_date_max": "2021-12-18T00:00:00",
+    "weight_min": 1.0,
+    "weight_mean": 1.0,
+    "weight_max": 1.0,
+    "weight_sum": 5916.0,
+    "effective_sample_size": 5916.0,
+    "effective_target_rate": 0.5062542258282623
+  },
+  "split_config": {
+    "train_end": "2022-01-01",
+    "validation_end": "2024-01-01"
+  },
+  "evaluate_test": false,
+  "validation_metrics": {
+    "random_forest": {
+      "accuracy": 0.6128712871287129,
+      "balanced_accuracy": 0.6137027612854585,
+      "roc_auc": 0.6427449502089027,
+      "log_loss": 0.6640928621320444,
+      "brier_score": 0.23580558883479458,
+      "threshold": 0.5,
+      "tn": 310,
+      "fp": 214,
+      "fn": 177,
+      "tp": 309
+    },
+    "catboost": {
+      "accuracy": 0.6,
+      "balanced_accuracy": 0.6009251405773883,
+      "roc_auc": 0.6400001570697075,
+      "log_loss": 0.6628180084329798,
+      "brier_score": 0.23523912648589484,
+      "threshold": 0.5,
+      "tn": 302,
+      "fp": 222,
+      "fn": 182,
+      "tp": 304
+    }
+  },
+  "test_metrics": null,
+  "selected_model_by_validation_log_loss": "catboost",
+  "random_forest_config": {
+    "n_estimators": 800,
+    "max_depth": 12,
+    "min_samples_leaf": 4,
+    "max_features": "sqrt",
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "catboost_config": {
+    "iterations": 2000,
+    "learning_rate": 0.03,
+    "depth": 5,
+    "l2_leaf_reg": 10.0,
+    "random_seed": 42,
+    "early_stopping_rounds": 150,
+    "verbose": 100
+  }
+}

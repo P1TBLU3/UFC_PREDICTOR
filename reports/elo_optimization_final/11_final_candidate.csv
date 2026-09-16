@@ -1,0 +1,2 @@
+candidate,feature_mode,primary_validation_log_loss,mean_temporal_delta_log_loss,folds_improved
+joint_sig0.75_ko0.90_base1.05_q0.05_k1.00__submission_heavy_rev0.04_rec60_thr1.0_sub0.85_base1.05_q0.05_k0.75,raw,0.65539630616143,-0.005979867929062095,3

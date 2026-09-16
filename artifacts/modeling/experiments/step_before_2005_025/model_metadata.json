@@ -1,0 +1,81 @@
+{
+  "time_weight_config": {
+    "mode": "step",
+    "cutoff_date": "2005-01-01",
+    "pre_cutoff_weight": 0.25,
+    "half_life_years": 8.0,
+    "minimum_weight": 0.1
+  },
+  "time_weight_summary": {
+    "config": {
+      "mode": "step",
+      "cutoff_date": "2005-01-01",
+      "pre_cutoff_weight": 0.25,
+      "half_life_years": 8.0,
+      "minimum_weight": 0.1
+    },
+    "original_train_rows": 6307,
+    "effective_train_rows": 6307,
+    "excluded_rows": 0,
+    "effective_date_min": "1994-03-11T00:00:00",
+    "effective_date_max": "2021-12-18T00:00:00",
+    "weight_min": 0.25,
+    "weight_mean": 0.9488663389884255,
+    "weight_max": 1.0,
+    "weight_sum": 5984.5,
+    "effective_sample_size": 6066.226037983528,
+    "effective_target_rate": 0.5081655303630886,
+    "rows_before_cutoff": 430,
+    "rows_from_cutoff": 5877
+  },
+  "split_config": {
+    "train_end": "2022-01-01",
+    "validation_end": "2024-01-01"
+  },
+  "evaluate_test": false,
+  "validation_metrics": {
+    "random_forest": {
+      "accuracy": 0.6049504950495049,
+      "balanced_accuracy": 0.6059945653881192,
+      "roc_auc": 0.6463928941664311,
+      "log_loss": 0.6627207298403927,
+      "brier_score": 0.2351670520599311,
+      "threshold": 0.5,
+      "tn": 303,
+      "fp": 221,
+      "fn": 178,
+      "tp": 308
+    },
+    "catboost": {
+      "accuracy": 0.598019801980198,
+      "balanced_accuracy": 0.5997628247416202,
+      "roc_auc": 0.6459373920145761,
+      "log_loss": 0.6595589584141751,
+      "brier_score": 0.23376083459710087,
+      "threshold": 0.5,
+      "tn": 290,
+      "fp": 234,
+      "fn": 172,
+      "tp": 314
+    }
+  },
+  "test_metrics": null,
+  "selected_model_by_validation_log_loss": "catboost",
+  "random_forest_config": {
+    "n_estimators": 800,
+    "max_depth": 12,
+    "min_samples_leaf": 4,
+    "max_features": "sqrt",
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "catboost_config": {
+    "iterations": 2000,
+    "learning_rate": 0.03,
+    "depth": 5,
+    "l2_leaf_reg": 10.0,
+    "random_seed": 42,
+    "early_stopping_rounds": 150,
+    "verbose": 100
+  }
+}

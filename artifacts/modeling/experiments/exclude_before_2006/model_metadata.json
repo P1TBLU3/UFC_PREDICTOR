@@ -1,0 +1,79 @@
+{
+  "time_weight_config": {
+    "mode": "exclude_before",
+    "cutoff_date": "2006-01-01",
+    "pre_cutoff_weight": 0.25,
+    "half_life_years": 8.0,
+    "minimum_weight": 0.1
+  },
+  "time_weight_summary": {
+    "config": {
+      "mode": "exclude_before",
+      "cutoff_date": "2006-01-01",
+      "pre_cutoff_weight": 0.25,
+      "half_life_years": 8.0,
+      "minimum_weight": 0.1
+    },
+    "original_train_rows": 6307,
+    "effective_train_rows": 5798,
+    "excluded_rows": 509,
+    "effective_date_min": "2006-01-16T00:00:00",
+    "effective_date_max": "2021-12-18T00:00:00",
+    "weight_min": 1.0,
+    "weight_mean": 1.0,
+    "weight_max": 1.0,
+    "weight_sum": 5798.0,
+    "effective_sample_size": 5798.0,
+    "effective_target_rate": 0.5067264573991032
+  },
+  "split_config": {
+    "train_end": "2022-01-01",
+    "validation_end": "2024-01-01"
+  },
+  "evaluate_test": false,
+  "validation_metrics": {
+    "random_forest": {
+      "accuracy": 0.600990099009901,
+      "balanced_accuracy": 0.601804730939591,
+      "roc_auc": 0.6432750604718374,
+      "log_loss": 0.6633995863136286,
+      "brier_score": 0.23550855430794523,
+      "threshold": 0.5,
+      "tn": 304,
+      "fp": 220,
+      "fn": 183,
+      "tp": 303
+    },
+    "catboost": {
+      "accuracy": 0.602970297029703,
+      "balanced_accuracy": 0.6047576414412716,
+      "roc_auc": 0.641370590267961,
+      "log_loss": 0.6618853361076602,
+      "brier_score": 0.2348411583239733,
+      "threshold": 0.5,
+      "tn": 292,
+      "fp": 232,
+      "fn": 169,
+      "tp": 317
+    }
+  },
+  "test_metrics": null,
+  "selected_model_by_validation_log_loss": "catboost",
+  "random_forest_config": {
+    "n_estimators": 800,
+    "max_depth": 12,
+    "min_samples_leaf": 4,
+    "max_features": "sqrt",
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "catboost_config": {
+    "iterations": 2000,
+    "learning_rate": 0.03,
+    "depth": 5,
+    "l2_leaf_reg": 10.0,
+    "random_seed": 42,
+    "early_stopping_rounds": 150,
+    "verbose": 100
+  }
+}

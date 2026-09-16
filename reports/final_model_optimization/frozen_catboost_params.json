@@ -1,0 +1,16 @@
+{
+  "loss_function": "Logloss",
+  "eval_metric": "Logloss",
+  "iterations": 734,
+  "depth": 4,
+  "learning_rate": 0.02,
+  "l2_leaf_reg": 10.0,
+  "random_strength": 2.0,
+  "bootstrap_type": "Bayesian",
+  "bagging_temperature": 0.0,
+  "border_count": 254,
+  "random_seed": 42,
+  "verbose": false,
+  "allow_writing_files": false,
+  "thread_count": -1
+}

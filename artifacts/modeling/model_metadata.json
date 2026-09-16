@@ -1,0 +1,145 @@
+{
+  "dataset_rows": 8628,
+  "dataset_date_min": "1994-03-11T00:00:00",
+  "dataset_date_max": "2026-07-18T00:00:00",
+  "split_config": {
+    "train_end": "2022-01-01",
+    "validation_end": "2024-01-01"
+  },
+  "split_sizes": {
+    "train": 6307,
+    "validation": 1010,
+    "test": 1311
+  },
+  "split_target_rates": {
+    "train": 0.5081655303630886,
+    "validation": 0.48118811881188117,
+    "test": 0.479023646071701
+  },
+  "numeric_features": [
+    "diff_age_years",
+    "diff_control_seconds_before",
+    "diff_control_stats_coverage_before",
+    "diff_current_loss_streak_before",
+    "diff_current_win_streak_before",
+    "diff_days_since_last_fight",
+    "diff_draws_before",
+    "diff_fights_before",
+    "diff_fights_with_control_stats_before",
+    "diff_fights_with_stats_before",
+    "diff_height_cm",
+    "diff_knockdowns_absorbed_before",
+    "diff_knockdowns_before",
+    "diff_losses_before",
+    "diff_no_contests_before",
+    "diff_reach_cm",
+    "diff_reversals_before",
+    "diff_sig_str_absorbed_attempted_before",
+    "diff_sig_str_absorbed_before",
+    "diff_sig_str_absorbed_per_min_before",
+    "diff_sig_str_accuracy_before",
+    "diff_sig_str_attempted_before",
+    "diff_sig_str_defense_before",
+    "diff_sig_str_landed_before",
+    "diff_sig_str_landed_per_min_before",
+    "diff_stats_coverage_before",
+    "diff_stats_fight_time_seconds_before",
+    "diff_submission_attempts_before",
+    "diff_takedown_accuracy_before",
+    "diff_takedown_defense_before",
+    "diff_takedowns_attempted_before",
+    "diff_takedowns_conceded_before",
+    "diff_takedowns_faced_before",
+    "diff_takedowns_landed_before",
+    "diff_total_fight_time_seconds_before",
+    "diff_win_rate_before",
+    "diff_wins_before",
+    "total_fights_before",
+    "min_fights_before",
+    "max_fights_before",
+    "total_fights_with_stats_before",
+    "min_fights_with_stats_before",
+    "total_stats_fight_time_seconds_before",
+    "min_stats_coverage_before",
+    "min_control_stats_coverage_before",
+    "both_debutants",
+    "one_debutant"
+  ],
+  "categorical_features": [
+    "weight_class",
+    "stance_matchup",
+    "same_stance"
+  ],
+  "random_forest_config": {
+    "n_estimators": 800,
+    "max_depth": 12,
+    "min_samples_leaf": 4,
+    "max_features": "sqrt",
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "catboost_config": {
+    "iterations": 2000,
+    "learning_rate": 0.03,
+    "depth": 5,
+    "l2_leaf_reg": 10.0,
+    "random_seed": 42,
+    "early_stopping_rounds": 150,
+    "verbose": 100
+  },
+  "validation_metrics": {
+    "random_forest": {
+      "accuracy": 0.599009900990099,
+      "balanced_accuracy": 0.6004185907705839,
+      "roc_auc": 0.6459805861841486,
+      "log_loss": 0.662699173309751,
+      "brier_score": 0.23514616160783344,
+      "threshold": 0.5,
+      "tn": 295,
+      "fp": 229,
+      "fn": 176,
+      "tp": 310
+    },
+    "catboost": {
+      "accuracy": 0.593069306930693,
+      "balanced_accuracy": 0.5943949674865705,
+      "roc_auc": 0.6397527722803381,
+      "log_loss": 0.6619903199620158,
+      "brier_score": 0.2349774288910521,
+      "threshold": 0.5,
+      "tn": 293,
+      "fp": 231,
+      "fn": 180,
+      "tp": 306
+    }
+  },
+  "test_metrics": {
+    "random_forest": {
+      "accuracy": 0.6109839816933639,
+      "balanced_accuracy": 0.6121573985134896,
+      "roc_auc": 0.6644463821096511,
+      "log_loss": 0.6558096418329818,
+      "brier_score": 0.23179838448128529,
+      "threshold": 0.5,
+      "tn": 399,
+      "fp": 284,
+      "fn": 226,
+      "tp": 402
+    },
+    "catboost": {
+      "accuracy": 0.6292906178489702,
+      "balanced_accuracy": 0.6303680838563475,
+      "roc_auc": 0.6755066165567792,
+      "log_loss": 0.6460435728668605,
+      "brier_score": 0.22739318895300392,
+      "threshold": 0.5,
+      "tn": 413,
+      "fp": 270,
+      "fn": 216,
+      "tp": 412
+    }
+  },
+  "selected_model_by_validation_log_loss": "catboost",
+  "target_definition": "target=1: fighter_a wins; target=0: fighter_b wins",
+  "selection_rule": "The model is selected solely by validation log loss (2022–2023)."
+}

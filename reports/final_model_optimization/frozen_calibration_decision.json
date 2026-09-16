@@ -1,0 +1,9 @@
+{
+  "method": "none",
+  "minimum_logloss_gain_required": 0.0005,
+  "minimum_bootstrap_probability_required": 0.8,
+  "calibration_fit_start_index": 6111,
+  "calibration_fit_end_index": 6766,
+  "calibration_eval_start_index": 6766,
+  "calibration_eval_end_index": 7421
+}

@@ -1,0 +1,80 @@
+{
+  "time_weight_config": {
+    "mode": "exponential",
+    "cutoff_date": "2005-01-01",
+    "pre_cutoff_weight": 0.25,
+    "half_life_years": 8,
+    "minimum_weight": 0.1
+  },
+  "time_weight_summary": {
+    "config": {
+      "mode": "exponential",
+      "cutoff_date": "2005-01-01",
+      "pre_cutoff_weight": 0.25,
+      "half_life_years": 8,
+      "minimum_weight": 0.1
+    },
+    "original_train_rows": 6307,
+    "effective_train_rows": 6307,
+    "excluded_rows": 0,
+    "effective_date_min": "1994-03-11T00:00:00",
+    "effective_date_max": "2021-12-18T00:00:00",
+    "weight_min": 0.1,
+    "weight_mean": 0.5719699331229894,
+    "weight_max": 1.0,
+    "weight_sum": 3607.4143682066942,
+    "effective_sample_size": 5423.037173096914,
+    "effective_target_rate": 0.5081655303630886,
+    "reference_date": "2021-12-18T00:00:00"
+  },
+  "split_config": {
+    "train_end": "2022-01-01",
+    "validation_end": "2024-01-01"
+  },
+  "evaluate_test": false,
+  "validation_metrics": {
+    "random_forest": {
+      "accuracy": 0.6049504950495049,
+      "balanced_accuracy": 0.6056215248327208,
+      "roc_auc": 0.641417711180222,
+      "log_loss": 0.6636675330947873,
+      "brier_score": 0.2356252132692786,
+      "threshold": 0.5,
+      "tn": 308,
+      "fp": 216,
+      "fn": 183,
+      "tp": 303
+    },
+    "catboost": {
+      "accuracy": 0.600990099009901,
+      "balanced_accuracy": 0.602774636383627,
+      "roc_auc": 0.6352762856155563,
+      "log_loss": 0.6644756928756315,
+      "brier_score": 0.2360621330128504,
+      "threshold": 0.5,
+      "tn": 291,
+      "fp": 233,
+      "fn": 170,
+      "tp": 316
+    }
+  },
+  "test_metrics": null,
+  "selected_model_by_validation_log_loss": "random_forest",
+  "random_forest_config": {
+    "n_estimators": 800,
+    "max_depth": 12,
+    "min_samples_leaf": 4,
+    "max_features": "sqrt",
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "catboost_config": {
+    "iterations": 2000,
+    "learning_rate": 0.03,
+    "depth": 5,
+    "l2_leaf_reg": 10.0,
+    "random_seed": 42,
+    "early_stopping_rounds": 150,
+    "verbose": 100
+  }
+}
