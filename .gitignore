@@ -21,6 +21,7 @@ data/raw/**/*.parquet
 data/interim/**
 data/processed/**
 !data/**/.gitkeep
+reports/upcoming_predictions/**
 
 # Trained models
 models/

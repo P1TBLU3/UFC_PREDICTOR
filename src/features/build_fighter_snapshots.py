@@ -35,7 +35,10 @@ class FighterState:
     current_win_streak: int = 0
     current_loss_streak: int = 0
 
+    # Sum of durations whose values are actually known.
     total_fight_time_seconds: int = 0
+    # A missing duration makes the exact historical total unknown.
+    fights_without_duration: int = 0
     last_fight_date: pd.Timestamp | None = None
 
     # Detailed-statistics coverage.
@@ -285,6 +288,8 @@ def create_snapshot(
         "days_since_last_fight": days_since_last_fight,
         "total_fight_time_seconds_before": (
             state.total_fight_time_seconds
+            if state.fights_without_duration == 0
+            else pd.NA
         ),
 
         # Prior statistics coverage.
@@ -356,7 +361,7 @@ def update_competitive_state(
     *,
     result: str,
     event_date: pd.Timestamp,
-    fight_time_seconds: int,
+    fight_time_seconds: int | None,
 ) -> None:
     """
     Update the fight record after saving the snapshot.
@@ -365,7 +370,12 @@ def update_competitive_state(
     """
 
     state.fights += 1
-    state.total_fight_time_seconds += fight_time_seconds
+    if fight_time_seconds is None:
+        # Preserve the result and the chronological history; never assume
+        # that unknown duration means a zero-second fight.
+        state.fights_without_duration += 1
+    else:
+        state.total_fight_time_seconds += fight_time_seconds
     state.last_fight_date = event_date
 
     if result == "W":
@@ -1117,7 +1127,6 @@ def build_fighter_snapshots() -> pd.DataFrame:
         "event_date",
         "fighter_1_id",
         "fighter_2_id",
-        "total_fight_time_seconds",
         "stats_available",
     ]
 
@@ -1134,6 +1143,38 @@ def build_fighter_snapshots() -> pd.DataFrame:
             "Required columns contain missing values:\n"
             f"{null_counts}"
         )
+
+    # The cleaning stage may preserve completed fights whose detail pages
+    # have not supplied a duration. Keep their W/L/D/NC history, but never
+    # manufacture their timing or use it in per-minute statistics.
+    missing_duration = fights["total_fight_time_seconds"].isna()
+    missing_duration_count = int(missing_duration.sum())
+    if missing_duration_count:
+        print(
+            "Completed fights with unknown duration (history preserved): "
+            f"{missing_duration_count:,}"
+        )
+        preview_columns = [
+            "fight_id", "event_date", "fighter_1_name",
+            "fighter_2_name", "stats_available",
+        ]
+        print(fights.loc[missing_duration, preview_columns].head(10).to_string(index=False))
+
+        # If detailed stats exist, unknown duration would make the rates
+        # statistically invalid. Stop instead of silently corrupting them.
+        missing_duration_with_stats = (
+            missing_duration & fights["stats_available"].eq(True)
+        )
+        if missing_duration_with_stats.any():
+            examples = fights.loc[
+                missing_duration_with_stats, preview_columns
+            ].head(10)
+            raise ValueError(
+                "Some completed fights have detailed statistics but no "
+                "duration. Refresh their UFCStats detail pages before "
+                "building per-minute features:\n"
+                f"{examples.to_string(index=False)}"
+            )
 
     invalid_duration = (
         fights["total_fight_time_seconds"] < 0
@@ -1260,8 +1301,10 @@ def build_fighter_snapshots() -> pd.DataFrame:
             )
         )
 
-        fight_time_seconds = int(
-            fight.total_fight_time_seconds
+        fight_time_seconds = (
+            None
+            if pd.isna(fight.total_fight_time_seconds)
+            else int(fight.total_fight_time_seconds)
         )
 
         # Update both fight records after the snapshots are stored.
@@ -1281,6 +1324,11 @@ def build_fighter_snapshots() -> pd.DataFrame:
 
         # Update performance metrics only when both statistics rows are available.
         if bool(fight.stats_available):
+            if fight_time_seconds is None:
+                raise ValueError(
+                    "Cannot update rate statistics without duration for "
+                    f"fight {fight_id}."
+                )
             fighter_1_stats = stats_lookup[
                 (fight_id, fighter_1_id)
             ]
@@ -1404,6 +1452,7 @@ def build_fighter_snapshots() -> pd.DataFrame:
     print()
     print("Historical snapshots generated successfully.")
     print(f"Fights processed: {len(fights):,}")
+    print(f"Completed fights with unknown duration: {missing_duration_count:,}")
     print(f"Snapshots generated: {len(snapshots):,}")
     print(
         "Distinct fighters: "

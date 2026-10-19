@@ -8,7 +8,7 @@ from __future__ import annotations
 import argparse
 import re
 import time
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -61,6 +61,22 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--show-browser", action="store_true")
     parser.add_argument("--max-attempts", type=int, default=3)
     parser.add_argument("--checkpoint-every", type=int, default=20)
+    parser.add_argument(
+        "--refresh-no-stats-days", type=int, default=30,
+        help="Retry completed fights without stats from the past N days (default: 30).",
+    )
+    parser.add_argument(
+        "--refresh-last-days", type=int, default=0,
+        help="Force recheck of all completed fights from the past N days (default: off).",
+    )
+    parser.add_argument(
+        "--refresh-all-incomplete", action="store_true",
+        help="Retry every completed fight missing statistics, including older fights.",
+    )
+    parser.add_argument(
+        "--strict", action="store_true",
+        help="Exit with an error if any selected fight could not be refreshed.",
+    )
     return parser.parse_args()
 
 
@@ -615,7 +631,7 @@ def parse_detailed_stats(
         else:
             raise ValueError(
                 "The statistic block count does not match the final round: "
-                f"bloques={block_count}, finish_round={expected_finish_round}. "
+                f"blocks={block_count}, finish_round={expected_finish_round}. "
                 "Expected finish_round or finish_round + 1."
             )
     else:
@@ -739,6 +755,88 @@ def write_atomic(dataframe: pd.DataFrame, path: Path, columns: list[str]) -> Non
     temporary.replace(path)
 
 
+def is_filled(value: object) -> bool:
+    """Return False for the empty strings used in the raw CSV checkpoints."""
+
+    return not pd.isna(value) and str(value).strip().lower() not in {
+        "", "nan", "none", "<na>",
+    }
+
+
+def is_true(value: object) -> bool:
+    return str(value).strip().lower() in {"true", "1", "yes"}
+
+
+def has_fight_result(row: pd.Series) -> bool:
+    return is_filled(row["fighter_1_result"]) and is_filled(row["fighter_2_result"])
+
+
+def select_fights_for_processing(
+    fights: pd.DataFrame,
+    details: pd.DataFrame,
+    totals: pd.DataFrame,
+    rounds: pd.DataFrame,
+    *,
+    today: date,
+    refresh_no_stats_days: int,
+    refresh_last_days: int,
+    refresh_all_incomplete: bool,
+) -> tuple[pd.DataFrame, dict[str, str]]:
+    """Choose new or outdated fights, without re-scraping all historical UFC data."""
+
+    indexed_details = details.drop_duplicates("fight_id", keep="last").set_index("fight_id")
+    totals_count = totals.groupby("fight_id").size().to_dict() if not totals.empty else {}
+    rounds_count = rounds.groupby("fight_id").size().to_dict() if not rounds.empty else {}
+    selected_indices: list[int] = []
+    reasons: dict[str, str] = {}
+
+    for index, source in fights.iterrows():
+        fight_id = str(source["fight_id"])
+        if fight_id not in indexed_details.index:
+            reason = "new_fight"
+        else:
+            old = indexed_details.loc[fight_id]
+            reason = ""
+            # In particular, keep the same fighter IDs and results as the
+            # newly refreshed fight-card data, even if UFCStats reorders names.
+            for field in (
+                "fighter_1_id", "fighter_2_id", "fighter_1_result",
+                "fighter_2_result", "winner_id",
+            ):
+                if str(source[field]).strip() != str(old[field]).strip():
+                    reason = "fight_card_changed"
+                    break
+
+            completed = has_fight_result(source)
+            parsed_date = pd.to_datetime(source["event_date"], errors="coerce")
+            age = (today - parsed_date.date()).days if pd.notna(parsed_date) else None
+            if completed and not reason:
+                if not is_filled(old["total_fight_time_seconds"]):
+                    reason = "missing_duration"
+                elif is_true(old["stats_available"]) and (
+                    totals_count.get(fight_id, 0) != 2 or rounds_count.get(fight_id, 0) == 0
+                ):
+                    reason = "incomplete_stat_rows"
+                elif not is_true(old["stats_available"]) and (
+                    refresh_all_incomplete or (
+                        age is not None and 0 <= age <= refresh_no_stats_days
+                    )
+                ):
+                    reason = "missing_stats"
+                elif (
+                    refresh_last_days > 0
+                    and age is not None
+                    and 0 <= age <= refresh_last_days
+                ):
+                    reason = "recent_recheck"
+
+        if reason:
+            selected_indices.append(index)
+            reasons[fight_id] = reason
+
+    return fights.loc[selected_indices].copy(), reasons
+
+
 def merge_and_save(
     existing_details: pd.DataFrame,
     existing_totals: pd.DataFrame,
@@ -747,29 +845,48 @@ def merge_and_save(
     new_totals: list[dict[str, Any]],
     new_rounds: list[dict[str, Any]],
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Replace complete fight blocks so old round records cannot survive a refresh."""
+
+    refreshed_ids = {str(record["fight_id"]) for record in new_details}
+    previous = (
+        existing_details.drop_duplicates("fight_id", keep="last").set_index("fight_id")
+    )
+    for record in new_details:
+        fight_id = str(record["fight_id"])
+        if (
+            fight_id in previous.index
+            and is_true(previous.loc[fight_id, "stats_available"])
+            and not is_true(record["stats_available"])
+        ):
+            raise ValueError(
+                f"Refusing to overwrite previously available statistics for {fight_id}."
+            )
+
     details = pd.concat(
-        [existing_details, pd.DataFrame(new_details, columns=DETAIL_COLUMNS)],
+        [
+            existing_details.loc[~existing_details["fight_id"].isin(refreshed_ids)],
+            pd.DataFrame(new_details, columns=DETAIL_COLUMNS),
+        ],
         ignore_index=True,
     ).drop_duplicates("fight_id", keep="last").reset_index(drop=True)
 
     totals = pd.concat(
-        [existing_totals, pd.DataFrame(new_totals, columns=TOTAL_COLUMNS)],
+        [
+            existing_totals.loc[~existing_totals["fight_id"].isin(refreshed_ids)],
+            pd.DataFrame(new_totals, columns=TOTAL_COLUMNS),
+        ],
         ignore_index=True,
-    )
-    if not totals.empty:
-        totals = totals.drop_duplicates(
-            ["fight_id", "fighter_id"], keep="last"
-        ).reset_index(drop=True)
+    ).drop_duplicates(["fight_id", "fighter_id"], keep="last").reset_index(drop=True)
 
     rounds = pd.concat(
-        [existing_rounds, pd.DataFrame(new_rounds, columns=ROUND_COLUMNS)],
+        [
+            existing_rounds.loc[~existing_rounds["fight_id"].isin(refreshed_ids)],
+            pd.DataFrame(new_rounds, columns=ROUND_COLUMNS),
+        ],
         ignore_index=True,
-    )
-    if not rounds.empty:
-        rounds = rounds.drop_duplicates(
-            ["fight_id", "fighter_id", "round"], keep="last"
-        ).reset_index(drop=True)
+    ).drop_duplicates(["fight_id", "fighter_id", "round"], keep="last").reset_index(drop=True)
 
+    # Work on in-memory copies first; only write after all checks pass.
     write_atomic(details, DETAILS_PATH, DETAIL_COLUMNS)
     write_atomic(totals, TOTALS_PATH, TOTAL_COLUMNS)
     write_atomic(rounds, ROUNDS_PATH, ROUND_COLUMNS)
@@ -799,18 +916,40 @@ def main() -> None:
     existing_totals = load_existing(TOTALS_PATH, TOTAL_COLUMNS, False)
     existing_rounds = load_existing(ROUNDS_PATH, ROUND_COLUMNS, False)
 
-    processed = set(existing_details["fight_id"].astype(str))
-    pending = fights[~fights["fight_id"].astype(str).isin(processed)].copy()
+    if args.refresh_no_stats_days < 0 or args.refresh_last_days < 0:
+        raise ValueError("Refresh windows must be non-negative.")
+
+    pending, refresh_reasons = select_fights_for_processing(
+        fights, existing_details, existing_totals, existing_rounds,
+        today=datetime.now(timezone.utc).date(),
+        refresh_no_stats_days=args.refresh_no_stats_days,
+        refresh_last_days=args.refresh_last_days,
+        refresh_all_incomplete=args.refresh_all_incomplete,
+    )
     if args.limit is not None:
         pending = pending.head(args.limit)
 
+    # Old fight-details records are deliberately not erased: they may relate
+    # to UFCStats events omitted temporarily from its event listing.
+    orphan_ids = set(existing_details["fight_id"]) - set(fights["fight_id"])
+    if orphan_ids:
+        print(
+            f"WARNING: {len(orphan_ids)} old fight-detail records have no "
+            "matching fights.csv entry. Not deleting them automatically."
+        )
+
     print(f"Available fights: {len(fights)}")
-    print(f"Pending fights: {len(pending)}")
+    print(f"Fights selected for initial scraping or refresh: {len(pending)}")
+    if not pending.empty:
+        selected_reasons = [refresh_reasons[fid] for fid in pending["fight_id"]]
+        print("Refresh reasons:")
+        for reason, count in pd.Series(selected_reasons).value_counts().items():
+            print(f"  {reason}: {count}")
     print(f"Existing fight details: {len(existing_details)}")
     print(f"Total rows: {len(existing_totals)}")
     print(f"Round rows: {len(existing_rounds)}\n")
     if pending.empty:
-        print("No new fights to process.")
+        print("No new or incomplete fights require processing.")
         return
 
     details_buffer: list[dict[str, Any]] = []
@@ -831,7 +970,10 @@ def main() -> None:
             for position, (_, source) in enumerate(pending.iterrows(), start=1):
                 fight_id = str(source["fight_id"])
                 name = f"{source['fighter_1_name']} vs. {source['fighter_2_name']}"
-                print(f"[{position}/{len(pending)}] Processing: {name}")
+                print(
+                    f"[{position}/{len(pending)}] Processing: {name} "
+                    f"({refresh_reasons[fight_id]})"
+                )
                 try:
                     soup = load_with_retries(
                         page, str(source["fight_url"]), args.max_attempts
@@ -839,6 +981,14 @@ def main() -> None:
                     fighters = get_page_fighters(soup)
                     validate_page_fighters(fighters, source)
                     metadata = extract_metadata(soup)
+                    if has_fight_result(source) and (
+                        metadata.get("finish_round") is None
+                        or metadata.get("total_fight_time_seconds") is None
+                    ):
+                        raise ValueError(
+                            "Completed fight still has no valid duration on UFCStats; "
+                            "keeping its previous checkpoint for a later retry."
+                        )
                     totals, rounds, round_count = parse_detailed_stats(
                         soup,
                         source,
@@ -849,6 +999,20 @@ def main() -> None:
                         source, metadata, bool(totals), round_count
                     )
                     validate_parsed(detail, totals, rounds)
+
+                    # An incomplete rendering must not erase statistics saved
+                    # by an earlier successful scrape.
+                    prior_detail = existing_details.loc[
+                        existing_details["fight_id"] == fight_id
+                    ]
+                    if (
+                        not prior_detail.empty
+                        and is_true(prior_detail.iloc[-1]["stats_available"])
+                        and not detail["stats_available"]
+                    ):
+                        raise ValueError(
+                            "Statistics disappeared on refresh; preserving existing data."
+                        )
 
                     details_buffer.append(detail)
                     totals_buffer.extend(totals)
@@ -877,6 +1041,7 @@ def main() -> None:
                 except Exception as error:
                     failures.append((fight_id, f"{name}: {error}"))
                     print(f"  Error: {error}")
+                    print(f"  Fight URL: {source['fight_url']}")
 
                 print()
                 if position < len(pending) and args.delay > 0:
@@ -905,6 +1070,8 @@ def main() -> None:
         print(f"\nFailed fights: {len(failures)}")
         for fight_id, error in failures:
             print(f"- {fight_id}: {error}")
+        if args.strict:
+            raise RuntimeError(f"Scraper failed to refresh {len(failures)} fights.")
 
 
 if __name__ == "__main__":
